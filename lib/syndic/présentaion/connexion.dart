@@ -1,0 +1,236 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:get/get_core/src/get_main.dart';
+import 'package:get/get_navigation/get_navigation.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:realm/realm.dart';
+import 'package:verve/di.dart';
+import 'package:verve/user/data/app_preferences.dart';
+import 'package:verve/user/presentation/connexion.dart';
+import 'package:verve/user/presentation/view_model/login_viewmodel.dart';
+
+import 'list_reclamation_syndic.dart';
+
+class ConnexionSyndic extends StatefulWidget {
+  const ConnexionSyndic({super.key});
+
+  @override
+  State<ConnexionSyndic> createState() => _ConnexionSyndicState();
+}
+
+class _ConnexionSyndicState extends State<ConnexionSyndic> {
+  TextEditingController loginEditingController = TextEditingController();
+  TextEditingController passwordEditingController = TextEditingController();
+  AppPreferences _appPreferences=instance<AppPreferences>();
+
+  final LoginViewModel _viewModel = LoginViewModel();
+
+  _bind() {
+    loginEditingController.addListener(() {
+      _viewModel.setLogin(loginEditingController.text);
+    });
+    passwordEditingController.addListener(() {
+      _viewModel.setPassword(passwordEditingController.text);
+    });
+    _viewModel.isSyndicLoggedInSeccessFullystreamController.stream
+        .listen((isLogged) {
+      if (isLogged) {
+        SchedulerBinding.instance.addPostFrameCallback((_) {
+          _appPreferences.setConnexionSyndicScreenViewed();
+          Get.off(ListeReclamationSyndic());
+        });
+      }
+    });
+  }
+
+  @override
+  void initState() {
+    _bind();
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        body: SafeArea(
+          child: SingleChildScrollView(
+      child: Column(
+          children: [
+            Stack(
+              children: [
+                Image(
+                  image: AssetImage("assets/syndic_cover.png"),
+                  width: double.infinity,
+                  height: 628.h,
+                  fit: BoxFit.cover,
+                ),
+                Column(
+                  children: [
+                    Container(
+                      margin:
+                          EdgeInsets.only(top: 30.r, left: 50.r, right: 50.r),
+                      child: Column(
+                        children: [
+                          Center(
+                              child: Image(
+                            image: AssetImage("assets/logo.png"),
+                            width: 200.w,
+                            height: 150.h,
+                          )),
+                          SizedBox(
+                            height: 12.h,
+                          ),
+                          Text(
+                            "Présentation du syndicat",
+                            style: GoogleFonts.inter(
+                              color: Colors.black,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 16.sp,
+                            ),
+                          ),
+                          SizedBox(
+                            height: 10.h,
+                          ),
+                          Text(
+                            "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure",
+                            style: GoogleFonts.inter(
+                                fontSize: 12.sp, fontWeight: FontWeight.w400),
+                          ),
+                          SizedBox(
+                            height: 20.h,
+                          ),
+                          Center(
+                            child: Text(
+                              "Connexion",
+                              style: GoogleFonts.inter(
+                                  fontSize: 24.sp, fontWeight: FontWeight.w700),
+                            ),
+                          ),
+                          SizedBox(
+                            height: 20.h,
+                          ),
+                        ],
+                      ),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 24.r),
+                      child: Column(
+                        children: [
+                          Text(
+                            "Entrez vos identifiants pour vous connectez",
+                            style: GoogleFonts.inter(
+                                fontWeight: FontWeight.w500, fontSize: 15.sp),
+                          ),
+                          SizedBox(
+                            height: 24.r,
+                          ),
+                          StreamBuilder<String?>(
+                              stream: _viewModel.outputErrorLogin,
+                              builder: (context, snapshot) {
+                                return TextFormField(
+                                  controller: loginEditingController,
+                                  decoration: InputDecoration(
+                                      filled: true,
+                                      fillColor: Colors.white,
+                                      hintText: "Login",
+                                      errorText: snapshot.data,
+                                      hintStyle: TextStyle(fontSize: 16.sp),
+                                      border: OutlineInputBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(24).w)),
+                                );
+                              }),
+                          SizedBox(
+                            height: 30.h,
+                          ),
+                          StreamBuilder<String?>(
+                              stream: _viewModel.outputErrorPassword,
+                              builder: (context, snapshot) {
+                                return TextFormField(
+                                  controller: passwordEditingController,
+                                  decoration: InputDecoration(
+                                      filled: true,
+                                      errorText: snapshot.data,
+                                      hintStyle: TextStyle(fontSize: 16.sp),
+                                      fillColor: Colors.white,
+                                      hintText: "Mot de passe",
+                                      border: OutlineInputBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(24).w)),
+                                );
+                              }),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 24.r),
+              child: Column(
+                children: [
+                  Container(
+                    width: 327.w,
+                    height: 60.h,
+                    child: StreamBuilder<bool>(
+                        stream: _viewModel.outputAreAllInputsValid,
+                        builder: (context, snapshot) {
+                          return ElevatedButton(
+                            onPressed: (snapshot.data ?? false)
+                                ? () {
+                                    _viewModel.loginSyndic();
+                                  }
+                                : null,
+                            style: ButtonStyle(
+                                elevation: MaterialStatePropertyAll(20),
+                                shape: MaterialStateProperty.all(
+                                  RoundedRectangleBorder(
+                                    // Change your radius here
+                                    borderRadius: BorderRadius.circular(25.r),
+                                  ),
+                                ),
+                                backgroundColor: (snapshot.data ?? false)
+                                    ? const MaterialStatePropertyAll(
+                                        Color.fromRGBO(82, 190, 66, 1))
+                                    : MaterialStatePropertyAll(Colors.grey)),
+                            child: Text(
+                              "Connexion",
+                              style: GoogleFonts.inter(
+                                  color: Colors.white,
+                                  fontSize: 24.sp,
+                                  fontWeight: FontWeight.w700),
+                            ),
+                          );
+                        }),
+                  ),
+                  SizedBox(
+                    height: 10.h,
+                  ),
+                  TextButton(onPressed: (){
+                      Get.off(Connexion());
+                  },child: Text("Etes-vous user / Login ?",style: GoogleFonts.inter(
+                    fontSize: 16.sp,
+                    color: Colors.black ,
+                    fontWeight: FontWeight.w700
+                  ),),),
+                  SizedBox(
+                    height: 5.h,
+                  ),
+                  Text(
+                    "@2023 - Powered by Media Experts",
+                    style: GoogleFonts.inter(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 16.sp,
+                    ),
+                  )
+                ],
+              ),
+            ),
+          ],
+      ),
+    ),
+        ));
+  }
+}
