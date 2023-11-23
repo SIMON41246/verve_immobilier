@@ -1,8 +1,5 @@
 # Project Description: Syndic Solution Mobile App
 
-<div align="center">
-  <img src="your-app-logo.png" alt="Syndic Solution Logo" width="200">
-</div>
 
 Welcome to the GitHub repository for the **Syndic Solution Mobile App**, an innovative project designed to streamline problem management within syndicates.
 
